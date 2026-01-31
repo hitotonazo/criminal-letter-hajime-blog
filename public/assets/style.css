@@ -86,3 +86,8 @@ body:before{
   pointer-events:none;
   mix-blend-mode:overlay;
 }
+
+
+/* clickable sequence (dates) */
+.seq{cursor:pointer; user-select:none;}
+.seq:hover{opacity:.85;}

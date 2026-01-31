@@ -23,9 +23,8 @@ export async function onRequestPost(context) {
   // Expected set. Keep it server-side (env) if you want, but we also validate length/uniqueness here.
   // For simplicity, we hardcode the "shape" and validate that the client has collected 6 unique values.
   // You can rotate these values later by editing index.html (data-s) AND this list.
-  const expected = ["a7f1", "c09b", "d3e8", "19ad", "bb42", "e5c0"];
-  const uniq = [...new Set(clicks)];
-  const ok = uniq.length === 6 && uniq.every(v => expected.includes(v));
+  const expected = ["01","02","03","04","05","06"];
+  const ok = clicks.length === expected.length && clicks.every((v,i)=>v===expected[i]);
 
   if (!ok) {
     return new Response(JSON.stringify({ ok: false }), {

@@ -1,18 +1,18 @@
 (() => {
-  // This script never exposes a link. It only tries to unlock a session cookie on the server.
-  // If you open devtools and run this manually, it still requires server validation + signed cookie.
-  const KEY = "k"; // sessionStorage key
-  const MAX = 6;
+  // 目に見える「日付」を順番にクリックすると、サーバー側で解放して /hidden/ に入れます。
+  const KEY = "k";
   const PATH = "/api/unlock";
+  const expected = ["01","02","03","04","05","06"]; // 6記事分（表示順）
 
   function load(){
     try { return JSON.parse(sessionStorage.getItem(KEY) || "[]"); } catch { return []; }
   }
   function save(arr){
-    sessionStorage.setItem(KEY, JSON.stringify(arr.slice(0, MAX)));
+    sessionStorage.setItem(KEY, JSON.stringify(arr.slice(0, expected.length)));
   }
+
   async function tryUnlock(arr){
-    if(arr.length !== MAX) return;
+    if(arr.length !== expected.length) return;
     try{
       const res = await fetch(PATH, {
         method:"POST",
@@ -22,23 +22,31 @@
       if(!res.ok) return;
       const data = await res.json().catch(()=>null);
       if(data && data.ok){
-        // Redirect without ever revealing the hidden URL in DOM.
         location.href = "/hidden/";
       }
     }catch(e){}
   }
 
-  const spots = document.querySelectorAll("[data-s]");
-  spots.forEach(el => {
+  const nodes = document.querySelectorAll("[data-s]");
+  nodes.forEach(el => {
     el.addEventListener("click", async (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
       const id = el.getAttribute("data-s");
       let arr = load();
-      if(!arr.includes(id)){
-        arr.push(id);
-        save(arr);
+
+      // ignore duplicates
+      if(arr.includes(id)) return;
+
+      // must match next expected, otherwise wipe
+      const next = expected[arr.length];
+      if(id !== next){
+        save([]);
+        return;
       }
+
+      arr.push(id);
+      save(arr);
       await tryUnlock(arr);
     }, {passive:false});
   });
